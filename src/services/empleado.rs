@@ -3,6 +3,8 @@ use crate::error::{AppError, AppResult};
 use crate::models::{Empleado, SolicitudVacaciones};
 use aws_sdk_dynamodb::types::AttributeValue;
 
+use chrono::Datelike;
+
 pub struct EmpleadoService {
     db: DynamoDBClient,
 }
@@ -22,7 +24,7 @@ impl EmpleadoService {
 
         // 3. Calcular información
         let antiguedad = empleado.calcular_antiguedad();
-        let dias_por_ley = empleado.calcular_dias_por_ley();
+        let _dias_por_ley = empleado.calcular_dias_por_ley();
         let dias_disponibles = empleado.calcular_dias_disponibles(dias_tomados);
 
         // 4. Agregar información calculada

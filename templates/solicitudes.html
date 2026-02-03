@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitudes - Sistema de Vacaciones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📝 Solicitudes de Vacaciones</h1>
+    <div class="page-header-actions">
+        <a href="/solicitudes/nueva" class="btn">+ Nueva solicitud</a>
+    </div>
+</div>
+
+{% if !solicitudes.is_empty() %}
+<!-- Filtros por estado -->
+<div class="filters">
+    <span class="filter-label">Filtrar por estado:</span>
+    <a href="/solicitudes" class="filter-btn {% if estado_filtro.is_none() %}active{% endif %}">Todas</a>    
+    <a href="/solicitudes?estado=pendiente" class="filter-btn {% if let Some(estado) = &estado_filtro %}{% if estado == "pendiente" %}active{% endif %}{% endif %}">Pendientes</a>
+    <a href="/solicitudes?estado=aprobada" class="filter-btn {% if let Some(estado) = &estado_filtro %}{% if estado == "aprobada" %}active{% endif %}{% endif %}">Aprobadas</a> 
+    <a href="/solicitudes?estado=rechazada" class="filter-btn {% if let Some(estado) = &estado_filtro %}{% if estado == "rechazada" %}active{% endif %}{% endif %}">Rechazadas</a>
+</div>
+
+<!-- Tabla de solicitudes -->
+<div class="table-container">
+    <table class="solicitudes-table">
+        <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Fecha inicio</th>
+                <th>Fecha fin</th>
+                <th>Días</th>
+                <th>Estado</th>
+                <th>Creada</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for solicitud in solicitudes %}
+            <tr>
+                <td>
+                    <a href="/empleados/{{ solicitud.empleado_id }}" class="link">
+                        {{ solicitud.empleado_id }}
+                    </a>
+                </td>
+                <td>{{ solicitud.fecha_inicio }}</td>
+                <td>{{ solicitud.fecha_fin }}</td>
+                <td class="text-center">{{ solicitud.dias_solicitados }}</td>
+                <td>
+                    <span class="badge badge-{{ solicitud.estado }}">{{ solicitud.estado }}</span>
+                </td>
+                <td>{{ solicitud.created_at }}</td>
+                <td>
+                    <div class="table-actions">
+                        {% if solicitud.estado == "pendiente" %}
+                        <button class="btn btn-small btn-success" 
+                                onclick="aprobar('{{ solicitud.id }}', '{{ solicitud.empleado_id }}')">
+                            ✓ Aprobar
+                        </button>
+                        <button class="btn btn-small btn-danger"
+                                onclick="rechazar('{{ solicitud.id }}', '{{ solicitud.empleado_id }}')">
+                            ✗ Rechazar
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+ <!-- Resumen de solicitudes -->                                                                                                          
+  <div class="solicitudes-summary">                                                                                                        
+      <div class="summary-card">                                                                                                           
+          <span class="summary-value">{{ total }}</span>                                                                                   
+          <span class="summary-label">Total</span>                                                                                         
+      </div>                                                                                                                               
+      <div class="summary-card summary-pendiente">                                                                                         
+          <span class="summary-value">{{ pendientes }}</span>                                                                              
+          <span class="summary-label">Pendientes</span>                                                                                    
+      </div>                                                                                                                               
+      <div class="summary-card summary-aprobada">                                                                                          
+          <span class="summary-value">{{ aprobadas }}</span>                                                                               
+          <span class="summary-label">Aprobadas</span>                                                                                     
+      </div>                                                                                                                               
+      <div class="summary-card summary-rechazada">                                                                                         
+          <span class="summary-value">{{ rechazadas }}</span>                                                                              
+          <span class="summary-label">Rechazadas</span>                                                                                    
+      </div>                                                                                                                               
+  </div>  
+
+{% else %}
+<div class="empty-state">
+    <p>😕 No hay solicitudes registradas</p>
+    <p class="text-muted">Crea una nueva solicitud para comenzar</p>
+    <a href="/solicitudes/nueva" class="btn" style="margin-top: 1rem;">+ Nueva solicitud</a>
+</div>
+{% endif %}
+
+<script>
+async function aprobar(solicitudId, empleadoId) {
+    if (!confirm('¿Estás seguro de aprobar esta solicitud?')) return;
+
+    const response = await fetch(`/api/solicitudes/${empleadoId}/${solicitudId}/aprobar`, {
+        method: 'POST',
+    });
+
+    if (response.ok) {
+        alert('✅ Solicitud aprobada');
+        location.reload();
+    } else {
+        const error = await response.json();
+        alert('❌ Error: ' + error.error);
+    }
+}
+
+async function rechazar(solicitudId, empleadoId) {
+    if (!confirm('¿Estás seguro de rechazar esta solicitud?')) return;
+
+    const response = await fetch(`/api/solicitudes/${empleadoId}/${solicitudId}/rechazar`, {
+        method: 'POST',
+    });
+
+    if (response.ok) {
+        alert('✅ Solicitud rechazada');
+        location.reload();
+    } else {
+        const error = await response.json();
+        alert('❌ Error: ' + error.error);
+    }
+}
+</script>
+{% endblock %}

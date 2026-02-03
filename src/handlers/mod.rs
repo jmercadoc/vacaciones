@@ -1,16 +1,22 @@
 pub mod empleado;
 pub mod solicitud;
 
-use axum::{Json, http::StatusCode};
-use serde_json::{Value, json};
+use crate::error::AppResult;
+use askama::Template;
+use axum::response::{Html, IntoResponse};
 
-pub async fn home() -> Json<Value> {
-    Json(json!({
-        "mensaje": "API de Gestión de Vacaciones",
-        "version": "1.0.0"
-    }))
+#[derive(Template)]
+#[template(path = "home.html")]
+struct HomeTemplate;
+
+pub async fn home() -> AppResult<impl IntoResponse> {
+    let template = HomeTemplate;
+    let html = template.render().map_err(|e| {
+        crate::error::AppError::TemplateError(format!("Error rendering template: {}", e))
+    })?;
+    Ok(Html(html))
 }
 
-pub async fn health() -> (StatusCode, Json<Value>) {
-    (StatusCode::OK, Json(json!({"status": "ok"})))
+pub async fn health() -> &'static str {
+    "OK"
 }

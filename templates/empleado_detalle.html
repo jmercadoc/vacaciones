@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}{{ empleado.nombre }} - Empleados{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="/empleados" class="back-link">← Volver a empleados</a>
+    <h1>{{ empleado.nombre }}</h1>
+    {% if empleado.es_admin %}
+    <span class="badge badge-admin">Administrador</span>
+    {% endif %}
+</div>
+
+<div class="detalle-grid">
+    <div class="detalle-section">
+        <h2>Información Personal</h2>
+        <div class="info-table">
+            <div class="info-row">
+                <span class="info-label">ID:</span>
+                <span class="info-value">{{ empleado.id }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ empleado.email }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Departamento:</span>
+                <span class="info-value">{{ empleado.departamento }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Fecha de ingreso:</span>
+                <span class="info-value">{{ empleado.fecha_ingreso }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="detalle-section">
+        <h2>Información de Vacaciones</h2>
+        <div class="stats-large">
+            {% if let Some(anos) = empleado.antiguedad_anos %}
+            <div class="stat-large">
+                <span class="stat-large-value">{{ anos }}</span>
+                <span class="stat-large-label">Año{% if *anos != 1 %}s{% endif %} de antigüedad</span>
+            </div>
+            {% endif %}
+            
+            {% if let Some(dias) = empleado.dias_disponibles %}
+            <div class="stat-large stat-primary">
+                <span class="stat-large-value">{{ dias }}</span>
+                <span class="stat-large-label">Días disponibles</span>
+            </div>
+            {% endif %}
+            
+            {% if let Some(tomados) = empleado.dias_tomados %}
+            <div class="stat-large">
+                <span class="stat-large-value">{{ tomados }}</span>
+                <span class="stat-large-label">Días tomados este año</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="actions-bar">
+    <a href="/solicitudes/nueva?empleado_id={{ empleado.id }}" class="btn">Nueva solicitud</a>
+    <a href="/api/empleados/{{ empleado.id }}" class="btn btn-secondary" target="_blank">Ver como JSON</a>
+</div>
+
+<div class="info-box">
+    <h3>ℹ️ Sobre el cálculo de vacaciones</h3>
+    <p>Los días de vacaciones se calculan según la <strong>Ley Federal del Trabajo de México</strong>:</p>
+    <ul>
+        <li>Primer año: 12 días</li>
+        <li>Segundo año: 14 días</li>
+        <li>Tercer año: 16 días</li>
+        <li>Cuarto año: 18 días</li>
+        <li>Quinto año: 20 días</li>
+        <li>A partir del sexto año: 20 días + 2 días adicionales cada 5 años</li>
+    </ul>
+</div>
+{% endblock %}

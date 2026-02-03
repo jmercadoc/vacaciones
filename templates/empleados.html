@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Empleados - Sistema de Vacaciones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>👥 Empleados</h1>
+    <p>Total de empleados: {{ empleados.len() }}</p>
+</div>
+
+<div class="empleados-grid">
+    {% for empleado in empleados %}
+    <div class="empleado-card">
+        <div class="empleado-header">
+            <h3>{{ empleado.nombre }}</h3>
+            {% if empleado.es_admin %}
+            <span class="badge badge-admin">Admin</span>
+            {% endif %}
+        </div>
+        
+        <div class="empleado-info">
+            <p><strong>📧 Email:</strong> {{ empleado.email }}</p>
+            <p><strong>🏢 Departamento:</strong> {{ empleado.departamento }}</p>
+            <p><strong>📅 Fecha de ingreso:</strong> {{ empleado.fecha_ingreso }}</p>
+        </div>
+        
+        <div class="empleado-stats">
+            {% if let Some(anos) = empleado.antiguedad_anos %}
+            <div class="stat">
+                <span class="stat-label">Antigüedad</span>
+                <span class="stat-value">{{ anos }} año{% if *anos != 1 %}s{% endif %}</span>
+            </div>
+            {% endif %}
+            
+            {% if let Some(dias) = empleado.dias_disponibles %}
+            <div class="stat">
+                <span class="stat-label">Días disponibles</span>
+                <span class="stat-value stat-highlight">{{ dias }}</span>
+            </div>
+            {% endif %}
+            
+            {% if let Some(tomados) = empleado.dias_tomados %}
+            <div class="stat">
+                <span class="stat-label">Días tomados</span>
+                <span class="stat-value">{{ tomados }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="empleado-actions">
+            <a href="/empleados/{{ empleado.id }}" class="btn btn-small">Ver detalles</a>
+            <a href="/api/empleados/{{ empleado.id }}" class="btn btn-small btn-secondary" target="_blank">Ver JSON</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if empleados.is_empty() %}
+<div class="empty-state">
+    <p>😕 No hay empleados registrados</p>
+    <p class="text-muted">Agrega tu primer empleado para comenzar</p>
+</div>
+{% endif %}
+{% endblock %}

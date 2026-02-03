@@ -11,6 +11,13 @@ pub enum AppError {
     BadRequest(String),
     InternalError(String),
     DatabaseError(String),
+    TemplateError(String),
+}
+
+impl From<askama::Error> for AppError {
+    fn from(err: askama::Error) -> Self {
+        AppError::TemplateError(err.to_string())
+    }
 }
 
 impl IntoResponse for AppError {
@@ -20,6 +27,10 @@ impl IntoResponse for AppError {
             AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg),
             AppError::InternalError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
             AppError::DatabaseError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
+            AppError::TemplateError(msg) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Template error: {}", msg),
+            ),
         };
 
         let body = Json(json!({

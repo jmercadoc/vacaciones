@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Sistema de Vacaciones{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Bienvenido al Sistema de Gestión de Vacaciones</h1>
+    <p class="subtitle">Gestiona las vacaciones de tus empleados de forma simple y eficiente</p>
+    
+    <div class="cards-grid">
+        <div class="card">
+            <h3>👥 Empleados</h3>
+            <p>Consulta la información de empleados, sus días disponibles y antigüedad</p>
+            <a href="/empleados" class="btn">Ver empleados</a>
+        </div>
+        
+        <div class="card">
+            <h3>📝 Solicitudes</h3>
+            <p>Gestiona las solicitudes de vacaciones pendientes y aprobadas</p>
+            <a href="/solicitudes" class="btn">Ver solicitudes</a>
+        </div>
+        
+        <div class="card">
+            <h3>📊 Reportes</h3>
+            <p>Genera reportes y estadísticas sobre las vacaciones</p>
+            <a href="/reportes" class="btn btn-secondary">Próximamente</a>
+        </div>
+    </div>
+</div>
+
+<div class="info-section">
+    <h2>Características</h2>
+    <ul class="features-list">
+        <li>✅ Cálculo automático de días según antigüedad</li>
+        <li>✅ Basado en la Ley Federal del Trabajo de México</li>
+        <li>✅ Seguimiento de días tomados y disponibles</li>
+        <li>✅ Gestión de solicitudes de vacaciones</li>
+    </ul>
+</div>
+{% endblock %}

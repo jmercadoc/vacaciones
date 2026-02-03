@@ -10,7 +10,7 @@ pub struct DynamoDBClient {
 
 impl DynamoDBClient {
     pub async fn new(config: &Config) -> Self {
-        let mut aws_config = aws_config::load_defaults(BehaviorVersion::latest()).await;
+        let aws_config = aws_config::load_defaults(BehaviorVersion::latest()).await;
 
         DynamoDBClient {
             client: Client::new(&aws_config),

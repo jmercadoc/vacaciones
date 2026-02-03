@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Solicitud - Sistema de Vacaciones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="/solicitudes" class="back-link">← Volver a solicitudes</a>
+    <h1>📝 Nueva Solicitud de Vacaciones</h1>
+</div>
+
+<div class="form-layout">
+
+    <!-- Formulario principal -->
+    <div class="detalle-section">   <!-- reutiliza el mismo card blanco que empleado_detalle -->
+        <h2>Datos de la solicitud</h2>
+
+        <form id="form-solicitud" onsubmit="enviarSolicitud(event)">
+
+            <!-- Seleccionar empleado -->
+            <div class="form-group">
+                <label for="empleado_id" class="form-label">Empleado</label>
+                <select id="empleado_id" name="empleado_id" class="form-input" required
+                        onchange="actualizarPreview()">
+                    <option value="" disabled selected>— Selecciona un empleado —</option>
+                    {% for emp in empleados %}
+                    <option value="{{ emp.id }}"
+                            {% if empleado_preseleccionado.as_deref() == Some(&emp.id) %}selected{% endif %}>
+                        {{ emp.nombre }} · {{ emp.departamento }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Fechas lado a lado (reutiliza detalle-grid en mobile → 1 col) -->
+            <div class="detalle-grid">
+                <div class="form-group">
+                    <label for="fecha_inicio" class="form-label">📅 Fecha de inicio</label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-input" required
+                           onchange="actualizarPreview()">
+                </div>
+                <div class="form-group">
+                    <label for="fecha_fin" class="form-label">📅 Fecha de fin</label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" class="form-input" required
+                           onchange="actualizarPreview()">
+                </div>
+            </div>
+
+            <!-- Resumen en tiempo real (reutiliza empleado-stats) -->
+            <div class="empleado-stats" id="preview-stats">
+                <div class="stat">
+                    <span class="stat-label">Días solicitados</span>
+                    <span class="stat-value" id="preview-solicitados">—</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Días disponibles</span>
+                    <span class="stat-value stat-highlight" id="preview-disponibles">—</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Quedarán</span>
+                    <span class="stat-value" id="preview-restantes">—</span>
+                </div>
+            </div>
+
+            <!-- Alerta de error (oculta por defecto) -->
+            <div class="form-error" id="form-error" style="display:none;">
+                <span id="error-msg"></span>
+            </div>
+
+            <!-- Botones -->
+            <div class="actions-bar">   <!-- reutiliza acciones-bar de empleado_detalle -->
+                <button type="submit" class="btn btn-large">Enviar solicitud</button>
+                <a href="/solicitudes"   class="btn btn-secondary btn-large">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sidebar informativa -->
+    <div class="form-sidebar">
+        <div class="info-box">
+            <h3>ℹ️ Información importante</h3>
+            <ul>
+                <li>Los días incluyen la fecha de inicio y de fin.</li>
+                <li>La solicitud debe ser aprobada por un administrador.</li>
+                <li>No puedes solicitar más días de los que tienes disponibles.</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h3>📊 Días según antigüedad</h3>
+            <ul>
+                <li>1er año → 12 días</li>
+                <li>2do año → 14 días</li>
+                <li>3er año → 16 días</li>
+                <li>4to año → 18 días</li>
+                <li>5to año → 20 días</li>
+                <li>6to año+ → +2 cada 5 años</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- ─── JS ─── -->
+<script>
+// Mapa empleado_id → { diasDisponibles }  generado desde el handler
+const empleados = {
+{% for emp in empleados %}
+    "{{ emp.id }}": { diasDisponibles: {{ emp.dias_disponibles.unwrap_or(0) }} },
+{% endfor %}
+};
+
+ /* calcula días laborables entre dos strings YYYY-MM-DD (inclusive, excluyendo sábados y domingos) */                                    
+  function calcDias(inicio, fin) {                                                                                                         
+      if (!inicio || !fin) return null;                                                                                                    
+                                                                                                                                           
+      const fechaInicio = new Date(inicio + 'T12:00:00');                                                                                  
+      const fechaFin = new Date(fin + 'T12:00:00');                                                                                        
+                                                                                                                                           
+      if (fechaFin < fechaInicio) return null;                                                                                             
+                                                                                                                                           
+      let diasLaborables = 0;                                                                                                              
+      let fechaActual = new Date(fechaInicio);                                                                                             
+                                                                                                                                           
+      while (fechaActual <= fechaFin) {                                                                                                    
+          const diaSemana = fechaActual.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado                                                     
+                                                                                                                                           
+          if (diaSemana !== 0 && diaSemana !== 6) {  // Excluir Domingo (0) y Sábado (6)                                                   
+              diasLaborables++;                                                                                                            
+          }                                                                                                                                
+                                                                                                                                           
+          fechaActual.setDate(fechaActual.getDate() + 1);                                                                                  
+      }                                                                                                                                    
+                                                                                                                                           
+      return diasLaborables;                                                                                                               
+  } 
+
+function actualizarPreview() {
+    const empId     = document.getElementById('empleado_id').value;
+    const inicio    = document.getElementById('fecha_inicio').value;
+    const fin       = document.getElementById('fecha_fin').value;
+    const emp       = empleados[empId];
+    const solicitados = calcDias(inicio, fin);
+
+    // ── días solicitados ──
+    document.getElementById('preview-solicitados').textContent = solicitados ?? '—';
+
+    // ── disponibles y restantes ──
+    if (emp) {
+        document.getElementById('preview-disponibles').textContent = emp.diasDisponibles;
+
+        if (solicitados !== null) {
+            const rest = emp.diasDisponibles - solicitados;
+            const el   = document.getElementById('preview-restantes');
+            el.textContent = rest;
+            el.className   = 'stat-value ' + (rest >= 0 ? 'stat-highlight' : 'stat-danger');
+        } else {
+            document.getElementById('preview-restantes').textContent = '—';
+        }
+    } else {
+        document.getElementById('preview-disponibles').textContent = '—';
+        document.getElementById('preview-restantes').textContent   = '—';
+    }
+}
+
+/* valida min de fecha_fin cuando cambia fecha_inicio */
+document.getElementById('fecha_inicio').addEventListener('change', function () {
+    document.getElementById('fecha_fin').setAttribute('min', this.value);
+    actualizarPreview();
+});
+
+/* envía POST al endpoint JSON y redirige */
+async function enviarSolicitud(e) {
+    e.preventDefault();
+
+    const empleadoId  = document.getElementById('empleado_id').value;
+    const fechaInicio = document.getElementById('fecha_inicio').value;
+    const fechaFin    = document.getElementById('fecha_fin').value;
+    const emp         = empleados[empleadoId];
+    const dias        = calcDias(fechaInicio, fechaFin);
+
+    // validación client-side
+    if (emp && dias !== null && dias > emp.diasDisponibles) {
+        mostrarError(`No hay suficientes días disponibles (disponibles: ${emp.diasDisponibles}, solicitados: ${dias}).`);
+        return;
+    }
+
+    const res = await fetch('/api/solicitudes', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ empleado_id: empleadoId, fecha_inicio: fechaInicio, fecha_fin: fechaFin }),
+    });
+
+    if (res.ok) {
+        window.location.href = '/solicitudes';   // redirigir al listado
+    } else {
+        const err = await res.json().catch(() => ({ error: 'Error desconocido' }));
+        mostrarError(err.error);
+    }
+}
+
+function mostrarError(msg) {
+    document.getElementById('error-msg').textContent = msg;
+    document.getElementById('form-error').style.display = 'block';
+}
+
+// ── inicialización ──
+document.addEventListener('DOMContentLoaded', () => {
+    // fecha mínima = hoy
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('fecha_inicio').setAttribute('min', hoy);
+    document.getElementById('fecha_fin').setAttribute('min', hoy);
+
+    // preseleccionar empleado si viene por query param (desde empleado_detalle)
+    const params = new URLSearchParams(location.search);
+    const empParam = params.get('empleado_id');
+    if (empParam) document.getElementById('empleado_id').value = empParam;
+
+    actualizarPreview();
+});
+</script>
+{% endblock %}

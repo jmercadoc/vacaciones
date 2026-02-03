@@ -6,7 +6,7 @@ mod models;
 mod routes;
 mod services;
 
-use axum::{Router, routing::get};
+// use axum::{Router, routing::get};
 use std::net::SocketAddr;
 use tracing_subscriber;
 

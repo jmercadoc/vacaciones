@@ -1,5 +1,5 @@
 use aws_sdk_dynamodb::types::AttributeValue;
-use chrono::{NaiveDate, Utc};
+use chrono::{Datelike, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -9,7 +9,6 @@ pub struct Empleado {
     pub nombre: String,
     pub departamento: String,
     pub email: String,
-    pub dias_disponibles: i32,
     pub es_admin: bool,
     pub fecha_ingreso: String, // Formato: "YYYY-MM-DD"
 
@@ -90,12 +89,9 @@ impl Empleado {
             AttributeValue::S(self.departamento.clone()),
         );
         item.insert("email".to_string(), AttributeValue::S(self.email.clone()));
-        item.insert(
-            "dias_disponibles".to_string(),
-            AttributeValue::N(self.dias_disponibles.to_string()),
-        );
+
         item.insert("es_admin".to_string(), AttributeValue::Bool(self.es_admin));
-        tem.insert(
+        item.insert(
             "fecha_ingreso".to_string(),
             AttributeValue::S(self.fecha_ingreso.clone()),
         );
@@ -131,8 +127,8 @@ mod tests {
         let emp1 = Empleado {
             id: "1".to_string(),
             nombre: "Test".to_string(),
+            departamento: "IT".to_string(),
             email: "test@test.com".to_string(),
-            password_hash: "hash".to_string(),
             es_admin: false,
             fecha_ingreso: "2024-01-01".to_string(),
             dias_disponibles: None,

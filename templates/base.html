@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Vacaciones{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">🏖️ Sistema de Vacaciones</h1>
+            <ul class="nav-links">
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/empleados">Empleados</a></li>
+                <li><a href="/solicitudes">Solicitudes</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Sistema de Vacaciones - Aprende Rust 🦀</p>
+        </div>
+    </footer>
+    
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
