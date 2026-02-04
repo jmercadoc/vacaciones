@@ -1,0 +1,22 @@
+# Directorios de compilación
+target/
+release-windows/
+
+# Archivos de desarrollo
+.env
+.git/
+.gitignore
+
+# Documentación
+README.md
+LICENSE
+BUILD-RELEASE.md
+
+# Scripts
+build-windows-release.sh
+
+# Otros archivos innecesarios
+*.log
+*.tmp
+.vscode/
+.idea/
