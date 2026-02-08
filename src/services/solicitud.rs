@@ -36,6 +36,35 @@ impl SolicitudService {
         Ok(solicitudes)
     }
 
+    /// Lista solicitudes de un empleado específico
+    pub async fn listar_solicitudes_por_empleado(
+        &self,
+        empleado_id: &str,
+    ) -> AppResult<Vec<SolicitudVacaciones>> {
+        let result = self
+            .db
+            .client
+            .query()
+            .table_name(&self.db.table_name)
+            .key_condition_expression("PK = :pk AND begins_with(SK, :sk)")
+            .expression_attribute_values(
+                ":pk",
+                AttributeValue::S(format!("EMPLEADO#{}", empleado_id)),
+            )
+            .expression_attribute_values(":sk", AttributeValue::S("SOLICITUD#".to_string()))
+            .send()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        let solicitudes: Vec<SolicitudVacaciones> = result
+            .items()
+            .iter()
+            .filter_map(|item| SolicitudVacaciones::from_item(item))
+            .collect();
+
+        Ok(solicitudes)
+    }
+
     /// Actualiza el estado de una solicitud                                                                                                 
     pub async fn actualizar_estado(
         &self,

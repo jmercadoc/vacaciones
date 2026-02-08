@@ -1,3 +1,4 @@
+pub mod auth;
 pub mod empleado;
 pub mod solicitud;
 

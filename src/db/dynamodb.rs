@@ -2,7 +2,7 @@ use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::Client;
 use crate::config::Config;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DynamoDBClient {
     pub client: Client,
     pub table_name: String,

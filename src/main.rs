@@ -1,3 +1,4 @@
+mod auth;
 mod config;
 mod db;
 mod error;
@@ -5,6 +6,7 @@ mod handlers;
 mod models;
 mod routes;
 mod services;
+mod session;
 
 // use axum::{Router, routing::get};
 use std::net::SocketAddr;
@@ -29,7 +31,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_client = db::DynamoDBClient::new(&config).await;
     tracing::info!("✅ Conectado a DynamoDB (tabla: {})", db_client.table_name);
 
-    let app = routes::create_router(db_client);
+    // Crear session store
+    let session_store = session::DynamoDBSessionStore::new(db_client.clone());
+    let session_layer = tower_sessions::SessionManagerLayer::new(session_store)
+        .with_secure(false) // true en producción con HTTPS
+        .with_same_site(tower_sessions::cookie::SameSite::Lax)
+        .with_http_only(true)
+        .with_expiry(tower_sessions::Expiry::OnInactivity(
+            time::Duration::days(config.session_ttl_days),
+        ));
+
+    let app = routes::create_router(db_client).layer(session_layer);
 
     let addr: SocketAddr = config.server_address().parse().map_err(|e| {
         eprintln!("❌ Dirección de servidor inválida");

@@ -12,6 +12,10 @@ pub struct Empleado {
     pub es_admin: bool,
     pub fecha_ingreso: String, // Formato: "YYYY-MM-DD"
 
+    // Campo de autenticación (no se serializa en respuestas JSON por seguridad)
+    #[serde(skip_serializing)]
+    pub password_hash: Option<String>,
+
     // Campos calculados (no se guardan en DB, se calculan dinámicamente)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dias_disponibles: Option<i32>,
@@ -102,6 +106,41 @@ impl Empleado {
     //     item
     // }
 
+    pub fn to_item(&self) -> HashMap<String, AttributeValue> {
+        let mut item = HashMap::new();
+        item.insert(
+            "PK".to_string(),
+            AttributeValue::S(format!("EMPLEADO#{}", self.id)),
+        );
+        item.insert("SK".to_string(), AttributeValue::S("METADATA".to_string()));
+        item.insert("id".to_string(), AttributeValue::S(self.id.clone()));
+        item.insert("nombre".to_string(), AttributeValue::S(self.nombre.clone()));
+        item.insert(
+            "departamento".to_string(),
+            AttributeValue::S(self.departamento.clone()),
+        );
+        item.insert("email".to_string(), AttributeValue::S(self.email.clone()));
+        item.insert("es_admin".to_string(), AttributeValue::Bool(self.es_admin));
+        item.insert(
+            "fecha_ingreso".to_string(),
+            AttributeValue::S(self.fecha_ingreso.clone()),
+        );
+        item.insert(
+            "tipo".to_string(),
+            AttributeValue::S("empleado".to_string()),
+        );
+
+        // Incluir password_hash si existe
+        if let Some(ref password_hash) = self.password_hash {
+            item.insert(
+                "password_hash".to_string(),
+                AttributeValue::S(password_hash.clone()),
+            );
+        }
+
+        item
+    }
+
     pub fn from_item(item: &HashMap<String, AttributeValue>) -> Option<Self> {
         Some(Empleado {
             id: item.get("id")?.as_s().ok()?.clone(),
@@ -110,6 +149,10 @@ impl Empleado {
             departamento: item.get("departamento")?.as_s().ok()?.clone(),
             es_admin: *item.get("es_admin")?.as_bool().ok()?,
             fecha_ingreso: item.get("fecha_ingreso")?.as_s().ok()?.clone(),
+            password_hash: item
+                .get("password_hash")
+                .and_then(|v| v.as_s().ok())
+                .map(|s| s.clone()),
             dias_disponibles: None,
             dias_tomados: None,
             antiguedad_anos: None,
@@ -131,6 +174,7 @@ mod tests {
             email: "test@test.com".to_string(),
             es_admin: false,
             fecha_ingreso: "2024-01-01".to_string(),
+            password_hash: None,
             dias_disponibles: None,
             dias_tomados: None,
             antiguedad_anos: None,

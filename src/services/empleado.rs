@@ -36,7 +36,7 @@ impl EmpleadoService {
     }
 
     /// Obtiene empleado de la base de datos
-    async fn obtener_empleado(&self, empleado_id: &str) -> AppResult<Empleado> {
+    pub async fn obtener_empleado(&self, empleado_id: &str) -> AppResult<Empleado> {
         let result = self
             .db
             .client

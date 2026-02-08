@@ -7,6 +7,7 @@ use axum::{
 };
 // use std::collections::HashMap;
 
+use crate::auth::{AdminUser, AuthUser};
 use crate::db::DynamoDBClient;
 use crate::error::{AppError, AppResult};
 use crate::models::{Empleado, NuevaSolicitud, SolicitudVacaciones};
@@ -59,11 +60,18 @@ pub struct NuevaSolicitudQuery {
 #[debug_handler]
 pub async fn listar_solicitudes(
     State(db): State<DynamoDBClient>,
+    auth_user: AuthUser,
     Query(query): Query<SolicitudesQuery>,
 ) -> AppResult<impl IntoResponse> {
-    // 1. traer todas las solicitudes (en tu servicio real filtrar por estado si quieres)
+    // 1. traer solicitudes según permisos: admins ven todas, empleados solo las suyas
     let service = SolicitudService::new(db.clone());
-    let solicitudes = service.listar_solicitudes().await?;
+    let solicitudes = if auth_user.empleado.es_admin {
+        service.listar_solicitudes().await?
+    } else {
+        service
+            .listar_solicitudes_por_empleado(&auth_user.empleado.id)
+            .await?
+    };
 
     // 2. filtrar client-side si viene ?estado=…
     let solicitudes: Vec<_> = match &query.estado {
@@ -117,6 +125,7 @@ pub async fn listar_solicitudes(
 #[debug_handler]
 pub async fn nueva_solicitud_form(
     State(db): State<DynamoDBClient>,
+    _auth_user: AuthUser,
     Query(query): Query<NuevaSolicitudQuery>,
 ) -> AppResult<impl IntoResponse> {
     // traer empleados con días disponibles calculados
@@ -136,8 +145,16 @@ pub async fn nueva_solicitud_form(
 /// POST /solicitudes - Crea una nueva solicitud de vacaciones
 pub async fn crear_solicitud(
     State(db): State<DynamoDBClient>,
+    auth_user: AuthUser,
     Json(solicitud): Json<NuevaSolicitud>,
 ) -> AppResult<(StatusCode, Json<SolicitudVacaciones>)> {
+    // Validar: usuario solo puede crear para su propio empleado_id (admins pueden para otros)
+    if !auth_user.empleado.es_admin && solicitud.empleado_id != auth_user.empleado.id {
+        return Err(AppError::Forbidden(
+            "No puedes crear solicitudes para otros empleados".to_string(),
+        ));
+    }
+
     // Calcular días solicitados (simplificado, asume formato YYYY-MM-DD)
     let dias = calcular_dias_entre_fechas(&solicitud.fecha_inicio, &solicitud.fecha_fin)?;
 
@@ -199,10 +216,11 @@ fn calcular_dias_entre_fechas(inicio: &str, fin: &str) -> AppResult<i32> {
       Ok(dias_laborables)                                                                                                                  
   }
 
-/// POST /api/solicitudes/:empleado_id/:solicitud_id/aprobar                                                                             
+/// POST /api/solicitudes/:empleado_id/:solicitud_id/aprobar
 #[debug_handler]
 pub async fn aprobar_solicitud(
     State(db): State<DynamoDBClient>,
+    _admin_user: AdminUser,
     Path((empleado_id, solicitud_id)): Path<(String, String)>,
 ) -> AppResult<Json<SolicitudVacaciones>> {
     use crate::services::SolicitudService;
@@ -214,10 +232,11 @@ pub async fn aprobar_solicitud(
     Ok(Json(solicitud))
 }
 
-/// POST /api/solicitudes/:empleado_id/:solicitud_id/rechazar                                                                            
+/// POST /api/solicitudes/:empleado_id/:solicitud_id/rechazar
 #[debug_handler]
 pub async fn rechazar_solicitud(
     State(db): State<DynamoDBClient>,
+    _admin_user: AdminUser,
     Path((empleado_id, solicitud_id)): Path<(String, String)>,
 ) -> AppResult<Json<SolicitudVacaciones>> {
     use crate::services::SolicitudService;
