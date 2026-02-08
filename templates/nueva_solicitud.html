@@ -104,7 +104,7 @@
 // Mapa empleado_id → { diasDisponibles }  generado desde el handler
 const empleados = {
 {% for emp in empleados %}
-    "{{ emp.id }}": { diasDisponibles: {{ emp.dias_disponibles.unwrap_or(0) }} },
+    "{{ emp.id }}": { diasDisponibles: {{ emp.dias_disponibles.unwrap_or(0) }}, nombre: "{{ emp.nombre }}" },
 {% endfor %}
 };
 
@@ -183,10 +183,11 @@ async function enviarSolicitud(e) {
         return;
     }
 
+    console.log('Empleado:',  emp );
     const res = await fetch('/api/solicitudes', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ empleado_id: empleadoId, fecha_inicio: fechaInicio, fecha_fin: fechaFin }),
+        body:    JSON.stringify({ empleado_id: empleadoId, empleado_nombre: emp?.nombre || '', fecha_inicio: fechaInicio, fecha_fin: fechaFin }),
     });
 
     if (res.ok) {

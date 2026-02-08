@@ -5,7 +5,7 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse},
 };
-use std::collections::HashMap;
+// use std::collections::HashMap;
 
 use crate::db::DynamoDBClient;
 use crate::error::{AppError, AppResult};
@@ -24,7 +24,7 @@ use uuid::Uuid;
 #[template(path = "solicitudes.html")]
 struct SolicitudesTemplate {
     solicitudes: Vec<SolicitudVacaciones>,
-    empleado_nombres: HashMap<String, String>,
+    //empleado_nombres: HashMap<String, String>,
     estado_filtro: Option<String>,
     total: usize,
     pendientes: usize,
@@ -88,17 +88,17 @@ pub async fn listar_solicitudes(
         .count();
 
     // 3. traer nombres de empleados para mostrar en la tabla
-    let service_empleados = EmpleadoService::new(db.clone());
-    let empleados = service_empleados.listar_empleados_con_dias().await?;
+    // let service_empleados = EmpleadoService::new(db.clone());
+    // let empleados = service_empleados.listar_empleados_con_dias().await?;
 
-    let empleado_nombres: HashMap<String, String> = empleados
-        .into_iter()
-        .map(|e| (e.id.clone(), e.nombre))
-        .collect();
+    // let empleado_nombres: HashMap<String, String> = empleados
+    //     .into_iter()
+    //     .map(|e| (e.id.clone(), e.nombre))
+    //     .collect();
 
     let template = SolicitudesTemplate {
         solicitudes,
-        empleado_nombres,
+        // empleado_nombres,
         estado_filtro: query.estado,
         total,
         pendientes,
@@ -144,6 +144,7 @@ pub async fn crear_solicitud(
     let nueva_solicitud = SolicitudVacaciones {
         id: Uuid::new_v4().to_string(),
         empleado_id: solicitud.empleado_id,
+        empleado_nombre: solicitud.empleado_nombre,
         fecha_inicio: solicitud.fecha_inicio,
         fecha_fin: solicitud.fecha_fin,
         estado: "pendiente".to_string(),

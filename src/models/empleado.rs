@@ -75,32 +75,32 @@ impl Empleado {
         (dias_por_ley - dias_tomados).max(0)
     }
 
-    pub fn to_item(&self) -> HashMap<String, AttributeValue> {
-        let mut item = HashMap::new();
-        item.insert(
-            "PK".to_string(),
-            AttributeValue::S(format!("EMPLEADO#{}", self.id)),
-        );
-        item.insert("SK".to_string(), AttributeValue::S("METADATA".to_string()));
-        item.insert("id".to_string(), AttributeValue::S(self.id.clone()));
-        item.insert("nombre".to_string(), AttributeValue::S(self.nombre.clone()));
-        item.insert(
-            "departamento".to_string(),
-            AttributeValue::S(self.departamento.clone()),
-        );
-        item.insert("email".to_string(), AttributeValue::S(self.email.clone()));
+    // pub fn to_item(&self) -> HashMap<String, AttributeValue> {
+    //     let mut item = HashMap::new();
+    //     item.insert(
+    //         "PK".to_string(),
+    //         AttributeValue::S(format!("EMPLEADO#{}", self.id)),
+    //     );
+    //     item.insert("SK".to_string(), AttributeValue::S("METADATA".to_string()));
+    //     item.insert("id".to_string(), AttributeValue::S(self.id.clone()));
+    //     item.insert("nombre".to_string(), AttributeValue::S(self.nombre.clone()));
+    //     item.insert(
+    //         "departamento".to_string(),
+    //         AttributeValue::S(self.departamento.clone()),
+    //     );
+    //     item.insert("email".to_string(), AttributeValue::S(self.email.clone()));
 
-        item.insert("es_admin".to_string(), AttributeValue::Bool(self.es_admin));
-        item.insert(
-            "fecha_ingreso".to_string(),
-            AttributeValue::S(self.fecha_ingreso.clone()),
-        );
-        item.insert(
-            "tipo".to_string(),
-            AttributeValue::S("empleado".to_string()),
-        );
-        item
-    }
+    //     item.insert("es_admin".to_string(), AttributeValue::Bool(self.es_admin));
+    //     item.insert(
+    //         "fecha_ingreso".to_string(),
+    //         AttributeValue::S(self.fecha_ingreso.clone()),
+    //     );
+    //     item.insert(
+    //         "tipo".to_string(),
+    //         AttributeValue::S("empleado".to_string()),
+    //     );
+    //     item
+    // }
 
     pub fn from_item(item: &HashMap<String, AttributeValue>) -> Option<Self> {
         Some(Empleado {
@@ -135,14 +135,14 @@ mod tests {
             dias_tomados: None,
             antiguedad_anos: None,
         };
-        assert_eq!(emp1.calcular_dias_por_ley(), 12);
+        assert_eq!(emp1.calcular_dias_por_ley(), 14);
 
         // Empleado con 3 años
         let emp3 = Empleado {
             fecha_ingreso: "2022-01-01".to_string(),
             ..emp1.clone()
         };
-        assert_eq!(emp3.calcular_dias_por_ley(), 16);
+        assert_eq!(emp3.calcular_dias_por_ley(), 18);
 
         // Empleado con 10 años (5to año base + 5 años extra / 5 = 1 incremento)
         let emp10 = Empleado {

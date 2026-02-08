@@ -1,9 +1,9 @@
 use crate::db::DynamoDBClient;
 use crate::error::{AppError, AppResult};
-use crate::models::{Empleado, SolicitudVacaciones};
+use crate::models::{SolicitudVacaciones};
 use aws_sdk_dynamodb::types::AttributeValue;
 
-use chrono::Datelike;
+
 
 pub struct SolicitudService {
     db: DynamoDBClient,

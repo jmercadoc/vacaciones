@@ -6,6 +6,7 @@ use std::collections::HashMap;
 pub struct SolicitudVacaciones {
     pub id: String,
     pub empleado_id: String,
+    pub empleado_nombre: String,
     pub fecha_inicio: String,
     pub fecha_fin: String,
     pub estado: String,
@@ -16,6 +17,7 @@ pub struct SolicitudVacaciones {
 #[derive(Debug, Deserialize)]
 pub struct NuevaSolicitud {
     pub empleado_id: String,
+    pub empleado_nombre: String,
     pub fecha_inicio: String,
     pub fecha_fin: String,
 }
@@ -27,6 +29,7 @@ impl SolicitudVacaciones {
         item.insert("SK".to_string(), AttributeValue::S(format!("SOLICITUD#{}", self.id)));
         item.insert("id".to_string(), AttributeValue::S(self.id.clone()));
         item.insert("empleado_id".to_string(), AttributeValue::S(self.empleado_id.clone()));
+        item.insert("empleado_nombre".to_string(), AttributeValue::S(self.empleado_nombre.clone()));
         item.insert("fecha_inicio".to_string(), AttributeValue::S(self.fecha_inicio.clone()));
         item.insert("fecha_fin".to_string(), AttributeValue::S(self.fecha_fin.clone()));
         item.insert("estado".to_string(), AttributeValue::S(self.estado.clone()));
@@ -40,6 +43,7 @@ impl SolicitudVacaciones {
         Some(SolicitudVacaciones {
             id: item.get("id")?.as_s().ok()?.clone(),
             empleado_id: item.get("empleado_id")?.as_s().ok()?.clone(),
+            empleado_nombre: item.get("empleado_nombre")?.as_s().ok()?.clone(),
             fecha_inicio: item.get("fecha_inicio")?.as_s().ok()?.clone(),
             fecha_fin: item.get("fecha_fin")?.as_s().ok()?.clone(),
             estado: item.get("estado")?.as_s().ok()?.clone(),

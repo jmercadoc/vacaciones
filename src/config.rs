@@ -4,7 +4,6 @@ use std::env;
 pub struct Config {
     pub server_host: String,
     pub server_port: u16,
-    pub aws_region: String,
     pub dynamodb_table_name: String,
 }
 
@@ -17,8 +16,7 @@ impl Config {
             server_port: env::var("SERVER_PORT")
                 .unwrap_or_else(|_| "3000".into())
                 .parse()
-                .unwrap_or(3000),
-            aws_region: env::var("AWS_REGION").unwrap_or_else(|_| "us-east-1".into()),
+                .unwrap_or(3000),       
             dynamodb_table_name: env::var("DYNAMODB_TABLE_NAME")
                 .unwrap_or_else(|_| "vacaciones".into()),
         })
